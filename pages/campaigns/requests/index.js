@@ -100,7 +100,7 @@ class Request extends Component {
                   this.props.approversCount
                 }`}</TableCell>
                 <TableCell padding="none">
-                  {request.comlete ? null : (
+                  {request.complete ? null : (
                     <Button
                       color="primary"
                       onClick={() => this.onApprove(index)}
