@@ -1,19 +1,19 @@
-import React, { Component } from 'react';
-import factory from '../ethereum/factory';
-import Layout from '../components/Layout/Layout';
-import Card from '../components/Card/Card';
-import AddButton from '../components/AddButton/AddButton';
-import Typography from '@material-ui/core/Typography';
+import React, { Component } from "react";
+import factory from "../ethereum/factory";
+import Layout from "../components/Layout/Layout";
+import Card from "../components/Card/Card";
+import AddButton from "../components/AddButton/AddButton";
+import Typography from "@material-ui/core/Typography";
 
 class Home extends Component {
   static async getInitialProps() {
-    const campaigns = await factory.methods.getDeployedCampaigns().call();
-
+    const campaigns = await factory.methods.getAllCampaigns().call();
+    console.log(campaigns);
     return { campaigns };
   }
 
   renderCampaigns = () => {
-    return this.props.campaigns.map((campaign) => (
+    return this.props.campaigns.map(campaign => (
       <Card key={campaign} address={campaign} />
     ));
   };
@@ -27,7 +27,7 @@ class Home extends Component {
           </Typography>
           <AddButton />
 
-          {this.renderCampaigns()}
+          {/* {this.renderCampaigns()} */}
         </div>
       </Layout>
     );
