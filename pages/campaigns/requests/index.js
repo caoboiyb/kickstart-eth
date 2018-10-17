@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import Layout from '../../../components/Layout/Layout';
+import React, { Component } from "react";
+import Layout from "../../../components/Layout/Layout";
 import {
   Button,
   Typography,
@@ -7,11 +7,11 @@ import {
   TableHead,
   TableRow,
   TableCell,
-  TableBody,
-} from '@material-ui/core';
-import { Link, Router } from '../../../routes';
-import Campaign from '../../../ethereum/campaign';
-import web3 from '../../../ethereum/web3';
+  TableBody
+} from "@material-ui/core";
+import { Link, Router } from "../../../routes";
+import Campaign from "../../../ethereum/campaign";
+import web3 from "../../../ethereum/web3";
 
 class Request extends Component {
   static async getInitialProps(props) {
@@ -24,7 +24,7 @@ class Request extends Component {
         .fill()
         .map((element, index) => {
           return campaign.methods.requests(index).call();
-        }),
+        })
     );
 
     console.log(requests);
@@ -33,11 +33,11 @@ class Request extends Component {
       address,
       requests,
       requestCount,
-      approversCount,
+      approversCount
     };
   }
 
-  onApprove = async (index) => {
+  onApprove = async index => {
     try {
       const accounts = await web3.eth.getAccounts();
       const campaign = Campaign(this.props.address);
@@ -48,11 +48,11 @@ class Request extends Component {
     }
   };
 
-  onFinalize = async (index) => {
+  onFinalize = async index => {
     try {
       const accounts = await web3.eth.getAccounts();
       const campaign = Campaign(this.props.address);
-      await campaign.methods.finalizeRequest(index).send({ from: accounts[0] });
+      await campaign.methods.withdrawRequest(index).send({ from: accounts[0] });
       Router.replaceRoute(`/campaigns/${this.props.address}/requests`);
     } catch (err) {
       alert(err.message);
@@ -64,7 +64,7 @@ class Request extends Component {
       <Layout>
         <Link route={`/campaigns/${this.props.address}/requests/new`}>
           <Button
-            style={{ float: 'right' }}
+            style={{ float: "right" }}
             color="primary"
             variant="contained"
             href={`/campaigns/${this.props.address}/requests/new`}
@@ -93,7 +93,7 @@ class Request extends Component {
                 <TableCell padding="none">{index}</TableCell>
                 <TableCell padding="none">{request.description}</TableCell>
                 <TableCell padding="none">
-                  {web3.utils.fromWei(request.value, 'ether')}
+                  {web3.utils.fromWei(request.value, "ether")}
                 </TableCell>
                 <TableCell padding="none">{request.recipient}</TableCell>
                 <TableCell padding="none">{`${request.approvalCount}/${

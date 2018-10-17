@@ -1,19 +1,20 @@
-import React, { Component } from 'react';
-import { Router, Link } from '../../routes';
-import Layout from '../../components/Layout/Layout';
-import Campaign from '../../ethereum/campaign';
-import web3 from '../../ethereum/web3';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import Button from '@material-ui/core/Button';
-import FormControl from '@material-ui/core/FormControl';
-import FormHelperText from '@material-ui/core/FormHelperText';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import InputAdornment from '@material-ui/core/InputAdornment';
+import React, { Component } from "react";
+import moment from "moment";
+import { Router, Link } from "../../routes";
+import Layout from "../../components/Layout/Layout";
+import Campaign from "../../ethereum/campaign";
+import web3 from "../../ethereum/web3";
+import Paper from "@material-ui/core/Paper";
+import Typography from "@material-ui/core/Typography";
+import Card from "@material-ui/core/Card";
+import CardContent from "@material-ui/core/CardContent";
+import Button from "@material-ui/core/Button";
+import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Input from "@material-ui/core/Input";
+import InputLabel from "@material-ui/core/InputLabel";
+import InputAdornment from "@material-ui/core/InputAdornment";
 
 class CampaignShow extends Component {
   static async getInitialProps(props) {
@@ -28,26 +29,28 @@ class CampaignShow extends Component {
       requestsCount: summary[2],
       approversCount: summary[3],
       manager: summary[4],
+      goal: summary[5],
+      timeLeft: summary[6]
     };
   }
 
   state = {
     amount: 0,
-    errorMessage: '',
-    loading: false,
+    errorMessage: "",
+    loading: false
   };
 
-  handleChange = (event) => {
+  handleChange = event => {
     this.setState({
       amount: event.target.value,
-      errorMessage: '',
+      errorMessage: ""
     });
   };
 
   _onSubmit = async () => {
     this.setState({
       loading: true,
-      errorMessage: '',
+      errorMessage: ""
     });
 
     try {
@@ -55,19 +58,19 @@ class CampaignShow extends Component {
       const campaign = Campaign(this.props.address);
       await campaign.methods.contribute().send({
         from: accounts[0],
-        value: web3.utils.toWei(this.state.amount, 'ether'),
+        value: web3.utils.toWei(this.state.amount, "ether")
       });
       Router.replaceRoute(`/campaigns/${this.props.address}`);
     } catch (err) {
       this.setState({
         errorMessage: err.message,
-        loading: false,
+        loading: false
       });
     }
 
     this.setState({
       loading: false,
-      amount: 0,
+      amount: 0
     });
   };
 
@@ -79,9 +82,9 @@ class CampaignShow extends Component {
         </Typography>
         <form
           style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            marginTop: '30px',
+            display: "flex",
+            flexWrap: "wrap",
+            marginTop: "30px"
           }}
           noValidate
           autoComplete="off"
@@ -98,31 +101,51 @@ class CampaignShow extends Component {
               fullWidth
               required
             />
-            <FormHelperText style={{ display: 'block' }}>
+            <FormHelperText style={{ display: "block" }}>
               {this.state.errorMessage}
             </FormHelperText>
           </FormControl>
           <Button
-            style={{ marginTop: '10px', marginBottom: '20px', width: '150px' }}
+            style={{ marginTop: "10px", marginBottom: "20px", width: "150px" }}
             color="primary"
             variant="contained"
             onClick={this._onSubmit}
           >
             {this.state.loading ? (
-              <CircularProgress style={{ color: 'white' }} size={20} />
+              <CircularProgress style={{ color: "white" }} size={20} />
             ) : (
-              'Contribute'
+              "Contribute"
+            )}
+          </Button>
+          <Button
+            style={{
+              marginTop: "10px",
+              marginBottom: "20px",
+              width: "150px",
+              marginLeft: "30px"
+            }}
+            color="secondary"
+            variant="contained"
+            onClick={this._onRefund}
+            disabled={
+              this.props.timeLeft > 0 || this.props.balance >= this.props.goal
+            }
+          >
+            {this.state.loading ? (
+              <CircularProgress style={{ color: "white" }} size={20} />
+            ) : (
+              "Refund"
             )}
           </Button>
         </form>
         <Typography gutterBottom variant="title">
           Campaign Detail
         </Typography>
-        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-          <Card style={{ width: '73%', marginBottom: 20 }}>
+        <div style={{ display: "flex", flexWrap: "wrap" }}>
+          <Card style={{ width: "73%", marginBottom: 20 }}>
             <CardContent>
               <Typography
-                style={{ overflowWrap: 'break-word' }}
+                style={{ overflowWrap: "break-word" }}
                 variant="title"
               >
                 {this.props.manager}
@@ -136,10 +159,10 @@ class CampaignShow extends Component {
               </Typography>
             </CardContent>
           </Card>
-          <Card style={{ width: '35%', marginBottom: 20, marginRight: 20 }}>
+          <Card style={{ width: "35%", marginBottom: 20, marginRight: 20 }}>
             <CardContent>
               <Typography
-                style={{ overflowWrap: 'break-word' }}
+                style={{ overflowWrap: "break-word" }}
                 variant="title"
               >
                 {this.props.minimumContribution}
@@ -152,10 +175,10 @@ class CampaignShow extends Component {
               </Typography>
             </CardContent>
           </Card>
-          <Card style={{ width: '35%', marginBottom: 20, marginRight: 20 }}>
+          <Card style={{ width: "35%", marginBottom: 20, marginRight: 20 }}>
             <CardContent>
               <Typography
-                style={{ overflowWrap: 'break-word' }}
+                style={{ overflowWrap: "break-word" }}
                 variant="title"
               >
                 {this.props.requestsCount}
@@ -178,10 +201,10 @@ class CampaignShow extends Component {
               </Button>
             </Link>
           </Card>
-          <Card style={{ width: '35%', marginBottom: 20, marginRight: 20 }}>
+          <Card style={{ width: "35%", marginBottom: 20, marginRight: 20 }}>
             <CardContent>
               <Typography
-                style={{ overflowWrap: 'break-word' }}
+                style={{ overflowWrap: "break-word" }}
                 variant="title"
               >
                 {this.props.approversCount}
@@ -194,13 +217,14 @@ class CampaignShow extends Component {
               </Typography>
             </CardContent>
           </Card>
-          <Card style={{ width: '35%', marginBottom: 20, marginRight: 20 }}>
+          <Card style={{ width: "35%", marginBottom: 20, marginRight: 20 }}>
             <CardContent>
               <Typography
-                style={{ overflowWrap: 'break-word' }}
+                style={{ overflowWrap: "break-word" }}
                 variant="title"
               >
-                {web3.utils.fromWei(this.props.balance, 'ether')} ETH
+                {web3.utils.fromWei(this.props.balance, "ether")} of{" "}
+                {web3.utils.fromWei(this.props.goal, "ether")} ETH
               </Typography>
               <Typography noWrap variant="caption">
                 Campaign Balance
@@ -208,6 +232,22 @@ class CampaignShow extends Component {
               <Typography variant="body1">
                 The balance is how much money this campaign has left
               </Typography>
+            </CardContent>
+          </Card>
+          <Card style={{ width: "35%", marginBottom: 20, marginRight: 20 }}>
+            <CardContent>
+              <Typography
+                style={{ overflowWrap: "break-word" }}
+                variant="title"
+              >
+                {this.props.timeLeft <= 0
+                  ? "Ended"
+                  : Math.round(this.props.timeLeft / 86400)}
+              </Typography>
+              <Typography noWrap variant="caption">
+                days to go
+              </Typography>
+              <Typography variant="body1">Deadline of the campaign</Typography>
             </CardContent>
           </Card>
         </div>

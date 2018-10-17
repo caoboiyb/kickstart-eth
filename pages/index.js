@@ -27,7 +27,7 @@ class Home extends Component {
           </Typography>
           <AddButton />
 
-          {/* {this.renderCampaigns()} */}
+          {this.renderCampaigns()}
         </div>
       </Layout>
     );

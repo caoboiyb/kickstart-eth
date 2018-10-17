@@ -33,6 +33,7 @@ contract Campaign {
     bool complete = false;
     
     struct Request {
+        string description;
         uint value;
         address recipient;
         bool complete;
@@ -118,8 +119,9 @@ contract Campaign {
         Create request to withdraw money
         Only owner of campaign can create request to withraw money
      */
-    function createRequest(uint _value, address _recipient) public _onlyOnwner _exceedBalance(_value) _enoughFund _finalRequestDone{
+    function createRequest(string _description, uint _value, address _recipient) public _onlyOnwner _exceedBalance(_value) _enoughFund _finalRequestDone{
         Request memory newRequest = Request({
+            description: _description,
             value: _value,
             recipient: _recipient,
             complete: false,
@@ -163,6 +165,18 @@ contract Campaign {
 
         request.recipient.transfer(request.value);
         request.complete = true;
+    }
+
+    function getSummary() public view returns (uint, uint, uint, uint, address, uint, int) {
+        return (
+            minimumContribution,
+            address(this).balance,
+            requests.length,
+            approversCount,
+            owner,
+            fundCall,
+            int(timeLock * 1 seconds - now)
+        );
     }
     
     function getRequestsCount() public view returns (uint) {
