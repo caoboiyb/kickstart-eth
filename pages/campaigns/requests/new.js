@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import Layout from '../../../components/Layout/Layout';
+import React, { Component } from "react";
+import Layout from "../../../components/Layout/Layout";
 import {
   Typography,
   Button,
@@ -7,31 +7,31 @@ import {
   InputLabel,
   FormControl,
   FormGroup,
-  CircularProgress,
-} from '@material-ui/core';
-import Campaign from '../../../ethereum/campaign';
-import web3 from '../../../ethereum/web3';
-import { Router, Link } from '../../../routes';
+  CircularProgress
+} from "@material-ui/core";
+import Campaign from "../../../ethereum/campaign";
+import web3 from "../../../ethereum/web3";
+import { Router, Link } from "../../../routes";
 
 class RequestNew extends Component {
   static getInitialProps(props) {
     const { address } = props.query;
 
     return {
-      address,
+      address
     };
   }
 
   state = {
-    description: '',
-    amount: '',
-    address: '',
-    loading: false,
+    description: "",
+    amount: "",
+    address: "",
+    loading: false
   };
 
   _onSubmit = async () => {
     this.setState({
-      loading: true,
+      loading: true
     });
 
     const campaign = Campaign(this.props.address);
@@ -39,7 +39,7 @@ class RequestNew extends Component {
     try {
       const accounts = await web3.eth.getAccounts();
       await campaign.methods
-        .createRequest(description, web3.utils.toWei(amount, 'ether'), address)
+        .createRequest(description, web3.utils.toWei(amount, "ether"), address)
         .send({ from: accounts[0] });
       Router.pushRoute(`/campaigns/${this.props.address}/requests`);
     } catch (err) {
@@ -47,7 +47,7 @@ class RequestNew extends Component {
     }
 
     this.setState({
-      loading: false,
+      loading: false
     });
   };
 
@@ -66,7 +66,7 @@ class RequestNew extends Component {
             <Input
               id="des"
               value={this.state.description}
-              onChange={(event) =>
+              onChange={event =>
                 this.setState({ description: event.target.value })
               }
             />
@@ -76,9 +76,7 @@ class RequestNew extends Component {
             <Input
               id="amount"
               value={this.state.amount}
-              onChange={(event) =>
-                this.setState({ amount: event.target.value })
-              }
+              onChange={event => this.setState({ amount: event.target.value })}
             />
           </FormControl>
           <FormControl style={{ marginTop: 10 }} fullWidth>
@@ -86,21 +84,19 @@ class RequestNew extends Component {
             <Input
               id="addr"
               value={this.state.address}
-              onChange={(event) =>
-                this.setState({ address: event.target.value })
-              }
+              onChange={event => this.setState({ address: event.target.value })}
             />
           </FormControl>
           <Button
-            style={{ marginTop: '20px', width: '120px' }}
+            style={{ marginTop: "20px", width: "120px" }}
             color="primary"
             variant="contained"
             onClick={this._onSubmit}
           >
             {this.state.loading ? (
-              <CircularProgress style={{ color: 'white' }} size={20} />
+              <CircularProgress style={{ color: "white" }} size={20} />
             ) : (
-              'Create'
+              "Create"
             )}
           </Button>
         </FormGroup>

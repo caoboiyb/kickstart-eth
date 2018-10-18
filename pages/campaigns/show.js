@@ -40,6 +40,10 @@ class CampaignShow extends Component {
     loading: false
   };
 
+  componentDidMount() {
+    console.log(this.props.timeLeft);
+  }
+
   handleChange = event => {
     this.setState({
       amount: event.target.value,
@@ -72,6 +76,24 @@ class CampaignShow extends Component {
       loading: false,
       amount: 0
     });
+  };
+
+  _onRefund = async () => {
+    this.setState({
+      loading: true,
+      errorMessage: ""
+    });
+
+    try {
+      const campaign = Campaign(this.props.address);
+      await campaign.methods.refund().call();
+      Router.replaceRoute(`/campaigns/${this.props.address}`);
+    } catch (err) {
+      this.setState({
+        errorMessage: err.message,
+        loading: false
+      });
+    }
   };
 
   render() {
@@ -242,7 +264,9 @@ class CampaignShow extends Component {
               >
                 {this.props.timeLeft <= 0
                   ? "Ended"
-                  : Math.round(this.props.timeLeft / 86400)}
+                  : Math.round(this.props.timeLeft / 86400) == 0
+                    ? "less than 0"
+                    : Math.round(this.props.timeLeft / 86400)}
               </Typography>
               <Typography noWrap variant="caption">
                 days to go
