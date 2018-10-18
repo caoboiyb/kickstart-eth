@@ -15,17 +15,13 @@ const header = (props) => (
     <AppBar position="static" color="default">
       <Toolbar>
         <Link route="/">
-          <Button href="/">Kickstarter</Button>
+          <Button href="/">Wefund</Button>
         </Link>
         <div style={{ flexGrow: 1 }} />
         <Link route="/">
-          <Button href="/">Campaigns</Button>
+          <Button href="/">Home</Button>
         </Link>
-        <Link route="/campaigns/new">
-          <Button href="/campaigns/new">
-            <AddIcon />
-          </Button>
-        </Link>
+        <Button>Login</Button>
       </Toolbar>
     </AppBar>
   </div>

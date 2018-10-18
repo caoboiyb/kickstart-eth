@@ -1,10 +1,10 @@
-pragma solidity ^0.4.17;
+pragma solidity ^0.4.21;
 
 contract CampaignFactory {
     address[] public campaigns;
     mapping(address => bool) verifyCampaigns;
-    function createCampaign(uint _fundCall, uint _timeLock, uint _minimumContribution) public returns(address){
-        address campaign = address(new Campaign(msg.sender, _fundCall, _timeLock, _minimumContribution));
+    function createCampaign(uint _fundCall,string _name, uint _timeLock, uint _minimumContribution) public returns(address){
+        address campaign = address(new Campaign(msg.sender, _name,_fundCall, _timeLock, _minimumContribution));
         campaigns.push(campaign);
         return campaign;
     }
@@ -18,38 +18,44 @@ contract CampaignFactory {
     }
     
     function() payable public {}
+    
 }
 
+
 contract Campaign {
-    address public owner;
+    
     uint public fundCall;
-    uint public remainingFund;
     uint public timeLock;
+    uint public approversCount;
+    uint public minimumContribution;
+    string public name;
+    address public owner;
     address[] public contributors;
     mapping(address => uint) public contributions;
     mapping(address => bool) public approvers;
-    uint public approversCount;
-    event NewCampaign(address owner, uint fundCall, uint timeLock);
-    bool complete = false;
+    event NewCampaign(address owner,string name, uint fundCall, uint timeLock);
+    bool public successful = false;
     
     struct Request {
         string description;
         uint value;
         address recipient;
-        bool complete;
+        bool done;
+        bool successful;
         uint approvalCount;
         mapping(address => bool) approvals;
     }
     Request[] public requests;
-    uint public minimumContribution;
     
-    constructor(address _owner, uint _fundCall, uint _timeLock, uint _minimumContribution) public {
+    
+    constructor(address _owner,string _name, uint _fundCall, uint _timeLock, uint _minimumContribution) public {
         require(_fundCall != 0 && _timeLock != 0 && _minimumContribution != 0);
+        name = _name;
         owner = _owner;
         fundCall = _fundCall * 1 wei;
         timeLock = now + _timeLock * 1 seconds;
         minimumContribution = _minimumContribution;
-        emit NewCampaign(_owner, _fundCall, _timeLock);
+        emit NewCampaign(_owner, _name, _fundCall, _timeLock);
     }
 
     /*
@@ -61,20 +67,17 @@ contract Campaign {
      */
     function contribute() public payable {
         require(msg.value > 0);
-        require(now < timeLock);
+        require(now < timeLock, "Time up");
         if(!isContributor(msg.sender)) {
             contributors.push(msg.sender);
         }
         if((contributions[msg.sender] + msg.value) >= minimumContribution) {
-            if (approvers[msg.sender] != true) {
-                approvers[msg.sender] = true;
-                approversCount++;
-            }
+            approvers[msg.sender] = true;    
+            if(!isContributor(msg.sender)) approversCount++;
         }
         contributions[msg.sender] += msg.value;
-        if(address(this).balance >= fundCall){
-            complete = true;
-            remainingFund = address(this).balance;    
+        if(address(this).balance >= fundCall && !successful){
+            successful = true;
         } 
     }
     /*
@@ -110,7 +113,7 @@ contract Campaign {
         Address is must be contributor and has not withdrawn 
      */
     function refund() public {
-        require(now >= timeLock && address(this).balance < fundCall, "Not eligible");
+        require(now >= timeLock && address(this).balance < fundCall, "Campaign is running");
         require(isContributor(msg.sender), "You have not contributed yet");
         msg.sender.transfer(contributions[msg.sender]);
         contributions[msg.sender] = 0;
@@ -121,12 +124,13 @@ contract Campaign {
         Create request to withdraw money
         Only owner of campaign can create request to withraw money
      */
-    function createRequest(string _description, uint _value, address _recipient) public _onlyOnwner _exceedBalance(_value) _enoughFund _finalRequestDone{
+    function createRequest(string _description, uint _value, address _recipient) public _onlyOnwner _exceedBalance(_value) _enoughFund _finalRequestDone {
         Request memory newRequest = Request({
             description: _description,
             value: _value,
             recipient: _recipient,
-            complete: false,
+            done: false,
+            successful: false,
             approvalCount: 0
         });
         requests.push(newRequest);
@@ -136,8 +140,8 @@ contract Campaign {
         Donator approve request to withraw of campaign's owner
         Donator has one occasion to vote 
      */
-    function approveRequest(uint index) public {
-        Request storage request = requests[index];
+    function approveRequest() public _existRequest _finalRequestUndone{
+        Request storage request = requests[requests.length - 1];
         require(approvers[msg.sender], "Caller must be a approver");
         require(!request.approvals[msg.sender], "Approver has already voted");
         request.approvals[msg.sender] = true;
@@ -148,10 +152,9 @@ contract Campaign {
         Owner can cancel request
         Request must be uncomplete 
     */
-    function cancelRequest(uint index) public _onlyOnwner{
-        Request storage request = requests[index];
-        require(!request.complete, "Request has already completed");
-        request.complete = true;
+    function cancelRequest() public _onlyOnwner _existRequest _finalRequestUndone{
+        Request storage request = requests[requests.length - 1];
+        request.done = true;
     }
 
     /*
@@ -159,17 +162,20 @@ contract Campaign {
         Request must be uncomplete
         Request must be successful voting
      */
-    function withdrawRequest(uint index) public _onlyOnwner{
-        Request storage request = requests[index];
+    function withdrawRequest() public _onlyOnwner _existRequest _finalRequestUndone{
+        Request storage request = requests[requests.length - 1];
         
         require(request.approvalCount > (approversCount / 2), "Not enough votes");
-        require(!request.complete, "Request has already completed");
-
         request.recipient.transfer(request.value);
-        request.complete = true;
+        request.done = true;
+        request.successful = true;
     }
-
-    function getSummary() public view returns (uint, uint, uint, uint, address, uint, int) {
+    
+    function getRequestsCount() public view returns (uint) {
+        return requests.length;
+    }
+    
+    function getSummary() public view returns (uint, uint, uint, uint, address, uint, int, string) {
         return (
             minimumContribution,
             address(this).balance,
@@ -177,12 +183,9 @@ contract Campaign {
             approversCount,
             owner,
             fundCall,
-            int(timeLock * 1 seconds - now)
+            int(timeLock * 1 seconds - now),
+            name
         );
-    }
-    
-    function getRequestsCount() public view returns (uint) {
-        return requests.length;
     }
     
     modifier _exceedBalance(uint _value){
@@ -196,18 +199,31 @@ contract Campaign {
     }
     
     modifier _campaignExpired() {
-        require(now >= timeLock, "Must enough time");
+        require(now >= timeLock, "Time expired");
         _;
     }
     
     modifier _enoughFund() {
-        require(complete, "Must enough fundCall");
+        require(successful, "Must enough fundCall");
         _;
     }
     
     modifier _finalRequestDone() {
-        uint finalRequest = requests.length - 1;
-        require(requests[finalRequest].complete, "Final request must be done before create new request");
+        if (requests.length > 0) {
+            uint finalRequest = requests.length - 1;
+            require(requests[finalRequest].done, "Final request must be complete before create new request");
+        }
+        _;
+    }
+    
+    modifier _existRequest() {
+        require(requests.length > 0, "Must existed request");
+        _;
+    }
+    
+    modifier _finalRequestUndone() {
+        require(!requests[requests.length - 1].done, "Final request must uncomplete");
         _;
     }
 }
+

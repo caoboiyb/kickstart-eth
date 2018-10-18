@@ -11,7 +11,7 @@ const card = (props) => (
   <Card style={{ width: '70%', marginBottom: 20 }}>
     <CardContent>
       <Typography noWrap variant="headline">
-        {props.address}
+        {props.name}
       </Typography>
     </CardContent>
 
