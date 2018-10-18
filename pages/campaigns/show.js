@@ -85,8 +85,9 @@ class CampaignShow extends Component {
     });
 
     try {
+      const accounts = await web3.eth.getAccounts();
       const campaign = Campaign(this.props.address);
-      await campaign.methods.refund().call();
+      await campaign.methods.refund().send({ from: accounts[0] });
       Router.replaceRoute(`/campaigns/${this.props.address}`);
     } catch (err) {
       this.setState({

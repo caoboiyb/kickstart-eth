@@ -66,8 +66,10 @@ contract Campaign {
             contributors.push(msg.sender);
         }
         if((contributions[msg.sender] + msg.value) >= minimumContribution) {
-            approvers[msg.sender] = true;    
-            approversCount++;
+            if (approvers[msg.sender] != true) {
+                approvers[msg.sender] = true;
+                approversCount++;
+            }
         }
         contributions[msg.sender] += msg.value;
         if(address(this).balance >= fundCall){
